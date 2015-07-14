@@ -1,25 +1,106 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
+title   : "Reproducibility on Activity Monitoring"
+author  : Diego-MX
+date    : July 2015
+output  : 
+  html_document: 
+    theme: flatly         #{"default", "cerulean", "journal",
+                          # "flatly", "readable", "spacelab", 
+                          # "united",  "cosmo"}
+    highlight: haddock    #{"default", "tango", "pygments",  
+                          # "kate", "monochrome", "espresso",
+                          # "zenburn", "haddock", and
+                          # "textmate"}
     keep_md: true
 ---
 
+This is a class project for **Coursera** and **Johns Hopkins**' course on Reproducible Research.  For a link to the project's description click [here][1].  
 
-## Loading and preprocessing the data
+Thanks to *Roger* -who runs this course- together with Jeff and Brian who run the whole Data Science Specialization from Johns Hopkins University. 
+
+On compiling the document, -and also a requeriment for the project- I use knitr package in RStudio IDE for R language.  Other packages that are used in performing the required tasks correspond to this code. 
+A function for printing numbers nicely is provided as well. 
+
+```{r packages, message=F}
+library(knitr);  library(magrittr);  library(dplyr);  
+library(data.table);  library(lubridate);  library(ggplot2);
+
+knit_hooks$set(inline=function(x)
+{ if(is.numeric(x)) 
+  { digits_ <- getOption("digits")
+    x %<>% signif(digits=digits_) %>% 
+      formatC(digits=digits_, format='fg')
+  } 
+  paste(as.character(x), collapse=", ")
+})
+options(digits=3)
+```
+
+[1]: https://github.com/rdpeng/RepData_PeerAssessment1/blob/master/README.md "Project Description"
+
+
+### Loading and Preprocessing Data
+
+To start with the data, let's consider several possibilities for accessing it.  That is, starting from a url from which to download it, or a zip file to extract, or csv file to read from.  
+In addition, the data is stored as a _data table_ and its dates transformed.  As for the interval, the _group\_by_ function didn't recognize such format, and it was decided to postpone its adjustment. 
+
+```{r loading}
+act_file <- "./activity.csv"
+act_zip  <- "./activity.zip"
+act_url  <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
+
+if(!file.exists(act_file))
+{ 
+  if(!file.exists(act_zip))
+  { download.file(act_url, act_zip, method='curl')
+  } 
+  unzip(act_zip)
+}
+
+stepsData <- read.csv(act_file) %>% as.data.table %>% 
+  mutate(date = ymd(date))
+```
+ 
+The data table `stepsData` consists of varibles ``r names(stepsData)`` for about ``r nrow(stepsData)`` observations.  As mentioned in the project description, these are the measurements for an anonymous individual, call him Mr. Anon, during two months in 5 minute intervals.  
+
+### Steps per Day
+
+Continue by totaling the steps taken each day and examine their overall measurements.  The reader might recognise the use of _dplyr_ methods to achieve just this. 
+```{r stepsMean, fig.align='center', fig.width=6, fig.height=3}
+byDay <- group_by(stepsData, date) %>% 
+  summarise(steps = sum(steps, na.rm=T))
+
+stepsHist <- ggplot(byDay, aes(steps)) + 
+  geom_histogram(binwidth=1500)
+print(stepsHist)
+```
+
+We are asked to compute the mean and median from it, and we round them to ``r mean(byDay$steps, na.rm=T)`` and ``r median(byDay$steps, na.rm=T)`` steps respectively. 
+
+
+### Daily Activity Pattern
+
+This section asks about the intervals averages along the day.  As before, observations can be grouped with _dplyr_ package, and we plot the resulting averages through the day.  
+
+```{r average}
+alongDay <- group_by(stepsData, interval) %>% 
+  summarise(steps = mean(steps, na.rm=T)) %>% 
+  mutate(hour = floor(interval/100),
+       minute = interval %% 100,
+      daytime = hm(paste(hour, minute)))
+
+day_plot <- ggplot(alongDay, aes(daytime, steps)) + 
+  geom_line() + 
+  scale_x_datetime()
+print(day_plot)
+```
+
+Moreover, the interval in the day with the most steps on average is ``r averages %$% interval[which.max(steps)]``, on which ``r max(averages$steps)`` steps were taken. 
 
 
 
-## What is mean total number of steps taken per day?
+### Missing Values
 
 
 
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
+### Are there differences in activity patterns between weekdays and weekends?
