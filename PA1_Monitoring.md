@@ -63,7 +63,7 @@ stepsData <- read.csv(act_file) %>% as.data.table %>%
  
 The data table `stepsData` consists of varibles `steps, date, interval, hour, minute, daytime` for about `17600` observations.  As mentioned in the project description, these are the measurements for an anonymous individual, call him Mr. Anon, during two months in 5 minute intervals.  
 
-The last four variables are closely related;  in particular `interval` and `daytime` differ only in their class representation.  While `daytime` captures the whole meaning of such variable, it presented issues in the computations.  Thus we remove it, and instead create a funtion to display it. 
+The last four variables are closely related;  in particular `interval` and `daytime` differ only in their class representation.  While `daytime` captures the whole meaning of such variable, it presented issues in the computations.  Thus we remove it, and instead create a simple funtion to display it when necessary. 
 
 
 ```r
@@ -108,7 +108,9 @@ ggplot(alongDay, aes(interval, steps.avg)) + geom_line()
 
 <img src="PA1_Monitoring_files/figure-html/average-1.png" title="" alt="" style="display: block; margin: auto;" />
 
-Moreover, the interval where Mr. Anon took the most steps on average is `8:35`, which accounted to ` 206` of them.
+Moreover, the interval where Mr. Anon took the most steps on average is `8:35`, which accounted to ` 206` of them.  
+
+A hypothesis for this time being the highest is that Mr. Anon exercises regularly at this time; and this is more viable than him walking to work because it is not compensated by a regular time to come back from work.  
 
 
 ### Missing Values
@@ -173,6 +175,11 @@ ggplot(along_wknd, aes(interval, steps.avg)) + geom_line() +
 ```
 
 <img src="PA1_Monitoring_files/figure-html/weekend-1.png" title="" alt="" style="display: block; margin: auto;" />
+
+This panel plot is not the most illustrative of plots, because it doesn't show whether Mr. Anon walks more during the weekdays.  But this is the plot that was requested in the project, so we'll just stick to it.  
+
+
+
 
 
 
