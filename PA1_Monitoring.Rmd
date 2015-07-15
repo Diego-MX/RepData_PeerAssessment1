@@ -97,7 +97,8 @@ ggplot(byDay, aes(steps)) +
   geom_histogram(binwidth=1500, alpha=0.8)
 ```
 
-We are asked to compute the mean and median from the steps taken by Mr. Anon, which are approximately ``r mean(byDay$steps)`` and ``r median(byDay$steps)`` respectively.
+We are asked to compute the mean and median from the steps taken by Mr. Anon, which are approximately ``r mean(byDay$steps)`` and ``r median(byDay$steps)`` respectively.  
+Observe that there are many days with a total count less than 1500.  This is highly unlikely given the rest of the distribution for this particular graph.   
 
 
 ### Daily Activity Pattern
@@ -111,16 +112,17 @@ alongDay <- group_by(stepsData, interval) %>%
 ggplot(alongDay, aes(interval, steps.avg)) + geom_line() 
 ```
 
-Moreover, the interval where Mr. Anon took the most steps on average is ``r alongDay %$% interval[which.max(steps.avg)] %>% int2str``, which accounted to ``r max(alongDay$steps.avg)`` of them.  
+Moreover, the interval where Mr. Anon took the most steps on average is ``r alongDay %$% interval[which.max(steps.avg)] %>% int2str``, which accounted to ``r max(alongDay$steps.avg)`` of them.  That whole period between, say `8:00` and `9:00` is one highly stepped hour of the days of Mr. Anon.  
+
 
 A hypothesis for this time being the highest is that Mr. Anon exercises regularly at this time; and this is more viable than him walking to work because it is not compensated by a regular time to come back from work.  
 
 
 ### Missing Values
 
-It is noted that there are several missing values ``r NA``s in the data.  More specifically ``r mean(is.na(stepsData$steps)) %>% multiply_by(100) %>% inline_hook %>% paste("%")`` of the observations are missing, which account to ``r mean(byDay$steps==0) %>% multiply_by(100) %>% inline_hook %>% paste("%")`` of days which totaled zero.  
+It is noted that there are several missing values `NA`s in the data.  More specifically ``r mean(is.na(stepsData$steps)) %>% multiply_by(100) %>% inline_hook %>% paste("%")`` of the observations are missing, which account to ``r mean(byDay$steps==0) %>% multiply_by(100) %>% inline_hook %>% paste("%")`` of days which totaled zero.  
 
-Having these two percentages match suggests that the missing values were taken during whole days; a quick observation in the table `byDay` suggests that once a week -probably Sunday- Mr. Anon was not recording his steps.  
+Having these two percentages match suggests that the missing values were taken during whole days; a glance of the first  dates in the table `byDay` suggests that once a week -probably Sunday- Mr. Anon was not recording his steps.  
 
 In any case, the missing values are supplied with the average for the corresponding interval, which is itself imported from the variable `alongDay` that was calculated earlier.  The following code does that, and place histograms side by side. 
 
@@ -139,7 +141,7 @@ ggplot(byDay_mod, aes(steps, fill=has_NAs)) +
     position=position_dodge(width=1500))
 ```
   
-The comparisson between the histograms shows a difference only in days with 0-2000 steps and 10-12 thousand.  I suspect this happens because the ones with ``r NA``s were first counted as having 0 steps and when averaged they all fell in the same bin between 10-12 thousand steps. 
+The comparisson between the histograms shows a difference only in days with 0-2 thousand steps and 10-12 thousand.  I suspect this happens because the ones with `NA`s were first counted as having 0 steps and when averaged they all fell in the same bin between 10-12 thousand steps. 
 
 The means and medians can be displayed from the following code. 
 ```{r "summaries"}
@@ -148,12 +150,14 @@ byDay_mod %>%
   summarise_each(funs(mean, median), vars=steps)
 ```
 
+The change in mean is expected because of the shift of the days count that was observed in the histogram.  However the change in median is not necessarily so; the fact that it did change says that the resulting placement of the `NA` observations -that is their average's average- is larger than the original median.  
+
 
 ### Weekend Patterns
 
 Next, we'll predict the weekend patterns by including a variable for the date being in a weekend.  Since we suspect that Mr. Anon didn't measure his steps during the weekend, we'll consider our original measurements.  
 
-```{r "weekend"}
+```{r "weekend", fig.height=4}
 stepsData %<>% mutate(is.wknd = abs(wday(date)-4)==3, 
   is.wknd = factor(is.wknd, labels=c("weekday", "weekend")))
 
@@ -164,7 +168,14 @@ ggplot(along_wknd, aes(interval, steps.avg)) + geom_line() +
   facet_grid(is.wknd ~ .)
 ```
 
-This panel plot is not the most illustrative of plots, because it doesn't show whether Mr. Anon walks more during the weekdays.  But this is the plot that was requested in the project, so we'll just stick to it.  
+This panel plot is not the most illustrative of plots, because it doesn't show whether Mr. Anon walks more during the weekdays.  But this is the plot that was requested in the project, so we'll just stick with it.  
+
+A bonus plot is one that shows more clearly the different steps patterns during the day.
+```{r "bonus"}
+ggplot(along_wknd, aes(interval, steps.avg, colour=is.wknd)) + geom_line()
+```
+Slightly more clear, you can see the shift of steps taken during that `8:00-9:00` period distributed more uniformly along the whole day.   
+
 
 
 

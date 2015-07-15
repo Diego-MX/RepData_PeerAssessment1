@@ -91,7 +91,8 @@ ggplot(byDay, aes(steps)) +
 
 <img src="PA1_Monitoring_files/figure-html/stepsMean-1.png" title="" alt="" style="display: block; margin: auto;" />
 
-We are asked to compute the mean and median from the steps taken by Mr. Anon, which are approximately `9350` and `10400` respectively.
+We are asked to compute the mean and median from the steps taken by Mr. Anon, which are approximately `9350` and `10400` respectively.  
+Observe that there are many days with a total count less than 1500.  This is highly unlikely given the rest of the distribution for this particular graph.   
 
 
 ### Daily Activity Pattern
@@ -108,7 +109,8 @@ ggplot(alongDay, aes(interval, steps.avg)) + geom_line()
 
 <img src="PA1_Monitoring_files/figure-html/average-1.png" title="" alt="" style="display: block; margin: auto;" />
 
-Moreover, the interval where Mr. Anon took the most steps on average is `8:35`, which accounted to ` 206` of them.  
+Moreover, the interval where Mr. Anon took the most steps on average is `8:35`, which accounted to ` 206` of them.  That whole period between, say `8:00` and `9:00` is one highly stepped hour of the days of Mr. Anon.  
+
 
 A hypothesis for this time being the highest is that Mr. Anon exercises regularly at this time; and this is more viable than him walking to work because it is not compensated by a regular time to come back from work.  
 
@@ -117,7 +119,7 @@ A hypothesis for this time being the highest is that Mr. Anon exercises regularl
 
 It is noted that there are several missing values `NA`s in the data.  More specifically `13.1 %` of the observations are missing, which account to `13.1 %` of days which totaled zero.  
 
-Having these two percentages match suggests that the missing values were taken during whole days; a quick observation in the table `byDay` suggests that once a week -probably Sunday- Mr. Anon was not recording his steps.  
+Having these two percentages match suggests that the missing values were taken during whole days; a glance of the first  dates in the table `byDay` suggests that once a week -probably Sunday- Mr. Anon was not recording his steps.  
 
 In any case, the missing values are supplied with the average for the corresponding interval, which is itself imported from the variable `alongDay` that was calculated earlier.  The following code does that, and place histograms side by side. 
 
@@ -139,7 +141,7 @@ ggplot(byDay_mod, aes(steps, fill=has_NAs)) +
 
 <img src="PA1_Monitoring_files/figure-html/fill_NAs-1.png" title="" alt="" style="display: block; margin: auto;" />
   
-The comparisson between the histograms shows a difference only in days with 0-2000 steps and 10-12 thousand.  I suspect this happens because the ones with `NA`s were first counted as having 0 steps and when averaged they all fell in the same bin between 10-12 thousand steps. 
+The comparisson between the histograms shows a difference only in days with 0-2 thousand steps and 10-12 thousand.  I suspect this happens because the ones with `NA`s were first counted as having 0 steps and when averaged they all fell in the same bin between 10-12 thousand steps. 
 
 The means and medians can be displayed from the following code. 
 
@@ -156,6 +158,8 @@ byDay_mod %>%
 ## 1   w_NAs  9354  10395
 ## 2  no_NAs 10766  10766
 ```
+
+The change in mean is expected because of the shift of the days count that was observed in the histogram.  However the change in median is not necessarily so; the fact that it did change says that the resulting placement of the `NA` observations -that is their average's average- is larger than the original median.  
 
 
 ### Weekend Patterns
@@ -176,7 +180,18 @@ ggplot(along_wknd, aes(interval, steps.avg)) + geom_line() +
 
 <img src="PA1_Monitoring_files/figure-html/weekend-1.png" title="" alt="" style="display: block; margin: auto;" />
 
-This panel plot is not the most illustrative of plots, because it doesn't show whether Mr. Anon walks more during the weekdays.  But this is the plot that was requested in the project, so we'll just stick to it.  
+This panel plot is not the most illustrative of plots, because it doesn't show whether Mr. Anon walks more during the weekdays.  But this is the plot that was requested in the project, so we'll just stick with it.  
+
+A bonus plot is one that shows more clearly the different steps patterns during the day.
+
+```r
+ggplot(along_wknd, aes(interval, steps.avg, colour=is.wknd)) +
+  geom_line()
+```
+
+<img src="PA1_Monitoring_files/figure-html/bonus-1.png" title="" alt="" style="display: block; margin: auto;" />
+
+
 
 
 
