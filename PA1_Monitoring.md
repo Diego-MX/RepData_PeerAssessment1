@@ -1,18 +1,6 @@
----
-title   : "Reproducibility on Activity Monitoring"
-author  : Diego-MX
-date    : July 2015
-output  : 
-  html_document: 
-    theme: flatly         #{"default", "cerulean", "journal",
-                          # "flatly", "readable", "spacelab", 
-                          # "united",  "cosmo"}
-    highlight: zenburn    #{"default", "tango", "pygments",  
-                          # "kate", "monochrome", "espresso",
-                          # "zenburn", "haddock", and
-                          # "textmate"}
-    keep_md: true
----
+# Reproducibility on Activity Monitoring
+Diego-MX  
+July 2015  
 
 This is a class project for **Coursera** and **Johns Hopkins**' course on Reproducible Research.  For a link to the project's description click [here][1].  
 
@@ -21,7 +9,8 @@ Thanks to *Roger* -who runs this course- together with Jeff and Brian who run th
 For compiling the document, -and also a requeriment for the project- I use `knitr` package in RStudio IDE with R.  Other packages that are used for performing the required tasks can be seen in the following code. 
 A few initializing options are set as well. 
 
-```{r "packages", message=F}
+
+```r
 library(knitr);  library(magrittr);  library(lubridate);
 library(dplyr);  library(reshape2);  library(data.table);
 library(ggplot2);  
@@ -51,7 +40,8 @@ opts_knit $set(fig.path="./figure")
 To start with the data, let's consider several possibilities for accessing it.  That is, starting from a url from which to download it, or a zip file to extract, or csv file to read from.  
 In addition, the data is stored as a _data table_ and its dates transformed.  The interval is also manipulated into its own class. 
 
-```{r "loading"}
+
+```r
 act_file <- "./activity.csv"
 act_zip  <- "./activity.zip"
 act_url  <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
@@ -71,11 +61,12 @@ stepsData <- read.csv(act_file) %>% as.data.table %>%
       daytime = hm(paste(hour, minute)))
 ```
  
-The data table `stepsData` consists of varibles ``r names(stepsData)`` for about ``r nrow(stepsData)`` observations.  As mentioned in the project description, these are the measurements for an anonymous individual, call him Mr. Anon, during two months in 5 minute intervals.  
+The data table `stepsData` consists of varibles `steps, date, interval, hour, minute, daytime` for about `17600` observations.  As mentioned in the project description, these are the measurements for an anonymous individual, call him Mr. Anon, during two months in 5 minute intervals.  
 
-The last four variables are closely related;  in particular `interval` and `daytime` differ only in their class representation.  While `daytime` captures the whole meaning of such variable, it presented issues in the computations.  Thus we remove it, and instead create a simple funtion to display it when necessary. 
+The last four variables are closely related;  in particular `interval` and `daytime` differ only in their class representation.  While `daytime` captures the whole meaning of such variable, it presented issues in the computations.  Thus we remove it, and instead create a funtion to display it. 
 
-```{r "bad_daytime"}
+
+```r
 stepsData %<>% select(-c(hour, minute, daytime))
 
 int2str <- function(int)
@@ -89,7 +80,8 @@ int2str <- function(int)
 ### Steps per Day
 
 Continue by totaling the steps taken by Mr. Anon each day and examine their overall measurements.  The reader might recognise the use of _dplyr_ methods to achieve just this. 
-```{r stepsMean}
+
+```r
 byDay <- group_by(stepsData, date) %>% 
   summarise(steps = sum(steps, na.rm=T))
 
@@ -97,34 +89,38 @@ ggplot(byDay, aes(steps)) +
   geom_histogram(binwidth=1500, alpha=0.8)
 ```
 
-We are asked to compute the mean and median from the steps taken by Mr. Anon, which are approximately ``r mean(byDay$steps)`` and ``r median(byDay$steps)`` respectively.
+<img src="PA1_Monitoring_files/figure-html/stepsMean-1.png" title="" alt="" style="display: block; margin: auto;" />
+
+We are asked to compute the mean and median from the steps taken by Mr. Anon, which are approximately `9350` and `10400` respectively.
 
 
 ### Daily Activity Pattern
 
 This section asks about Mr. Anon's average daily pattern of steps.  As before, observations can be grouped with _dplyr_ package, and we plot the resulting averages through the day.  
 
-```{r "average"}
+
+```r
 alongDay <- group_by(stepsData, interval) %>% 
   summarise(steps.avg = mean(steps, na.rm=T))
 
 ggplot(alongDay, aes(interval, steps.avg)) + geom_line() 
 ```
 
-Moreover, the interval where Mr. Anon took the most steps on average is ``r alongDay %$% interval[which.max(steps.avg)] %>% int2str``, which accounted to ``r max(alongDay$steps.avg)`` of them.  
+<img src="PA1_Monitoring_files/figure-html/average-1.png" title="" alt="" style="display: block; margin: auto;" />
 
-A hypothesis for this time being the highest is that Mr. Anon exercises regularly at this time; and this is more viable than him walking to work because it is not compensated by a regular time to come back from work.  
+Moreover, the interval where Mr. Anon took the most steps on average is `8:35`, which accounted to ` 206` of them.
 
 
 ### Missing Values
 
-It is noted that there are several missing values ``r NA``s in the data.  More specifically ``r mean(is.na(stepsData$steps)) %>% multiply_by(100) %>% inline_hook %>% paste("%")`` of the observations are missing, which account to ``r mean(byDay$steps==0) %>% multiply_by(100) %>% inline_hook %>% paste("%")`` of days which totaled zero.  
+It is noted that there are several missing values `NA`s in the data.  More specifically `13.1 %` of the observations are missing, which account to `13.1 %` of days which totaled zero.  
 
 Having these two percentages match suggests that the missing values were taken during whole days; a quick observation in the table `byDay` suggests that once a week -probably Sunday- Mr. Anon was not recording his steps.  
 
 In any case, the missing values are supplied with the average for the corresponding interval, which is itself imported from the variable `alongDay` that was calculated earlier.  The following code does that, and place histograms side by side. 
 
-```{r "fill_NAs", warning=F}
+
+```r
 stepsData %<>% left_join(alongDay, "interval") %>% 
   mutate(steps_ = ifelse(is.na(steps), steps.avg, steps))
 
@@ -138,14 +134,25 @@ ggplot(byDay_mod, aes(steps, fill=has_NAs)) +
   geom_histogram(binwidth=2000, alpha=0.6, 
     position=position_dodge(width=1500))
 ```
+
+<img src="PA1_Monitoring_files/figure-html/fill_NAs-1.png" title="" alt="" style="display: block; margin: auto;" />
   
-The comparisson between the histograms shows a difference only in days with 0-2000 steps and 10-12 thousand.  I suspect this happens because the ones with ``r NA``s were first counted as having 0 steps and when averaged they all fell in the same bin between 10-12 thousand steps. 
+The comparisson between the histograms shows a difference only in days with 0-2000 steps and 10-12 thousand.  I suspect this happens because the ones with `NA`s were first counted as having 0 steps and when averaged they all fell in the same bin between 10-12 thousand steps. 
 
 The means and medians can be displayed from the following code. 
-```{r "summaries"}
+
+```r
 byDay_mod %>% 
   group_by(has_NAs) %>% 
   summarise_each(funs(mean, median), vars=steps)
+```
+
+```
+## Source: local data table [2 x 3]
+## 
+##   has_NAs  mean median
+## 1   w_NAs  9354  10395
+## 2  no_NAs 10766  10766
 ```
 
 
@@ -153,7 +160,8 @@ byDay_mod %>%
 
 Next, we'll predict the weekend patterns by including a variable for the date being in a weekend.  Since we suspect that Mr. Anon didn't measure his steps during the weekend, we'll consider our original measurements.  
 
-```{r "weekend"}
+
+```r
 stepsData %<>% mutate(is.wknd = abs(wday(date)-4)==3, 
   is.wknd = factor(is.wknd, labels=c("weekday", "weekend")))
 
@@ -164,10 +172,7 @@ ggplot(along_wknd, aes(interval, steps.avg)) + geom_line() +
   facet_grid(is.wknd ~ .)
 ```
 
-This panel plot is not the most illustrative of plots, because it doesn't show whether Mr. Anon walks more during the weekdays.  But this is the plot that was requested in the project, so we'll just stick to it.  
-
-
-
+<img src="PA1_Monitoring_files/figure-html/weekend-1.png" title="" alt="" style="display: block; margin: auto;" />
 
 
 
