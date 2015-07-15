@@ -89,7 +89,7 @@ int2str <- function(int)
 ### Steps per Day
 
 Continue by totaling the steps taken by Mr. Anon each day and examine their overall measurements.  The reader might recognise the use of _dplyr_ methods to achieve just this. 
-```{r stepsMean}
+```{r "stepsMean"}
 byDay <- group_by(stepsData, date) %>% 
   summarise(steps = sum(steps, na.rm=T))
 
