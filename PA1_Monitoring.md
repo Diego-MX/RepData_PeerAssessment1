@@ -1,13 +1,13 @@
 # Reproducibility on Activity Monitoring
 Diego-MX  
-July 2015  
+May 2016  
 
 This is a class project for **Coursera** and **Johns Hopkins**' course on Reproducible Research.  For a link to the project's description click [here][1].  
 
 Thanks to *Roger* -who runs this course- together with Jeff and Brian who run the whole Data Science Specialization from Johns Hopkins University. 
 
-For compiling the document, -and also a requeriment for the project- I use `knitr` package in RStudio IDE with R.  Other packages that are used for performing the required tasks can be seen in the following code. 
-A few initializing options are set as well. 
+For compiling the document I use `knitr` package in RStudio IDE with R.  Other packages that are used for performing the required tasks can be seen in the following code. 
+Initializing options are set as well. 
 
 
 ```r
@@ -15,15 +15,16 @@ library(knitr);  library(magrittr);  library(lubridate);
 library(dplyr);  library(reshape2);  library(data.table);
 library(ggplot2);  
 
-inline_hook <- function(x)
-{ require(magrittr)
+inline_hook <- function(x) { 
+  require(magrittr)
   
-  if(is.numeric(x)) 
-  { digits_ <- getOption('digits')
-    x %<>% signif(digits=digits_) %>% 
+  if (is.numeric(x)) { 
+    digits_ <- getOption('digits')
+    x <- signif(x, digits=digits_) %>% 
       formatC(digits=digits_, format='fg')
   } 
-  paste(as.character(x), collapse=", ")
+  x_str <- paste(as.character(x), collapse=", ")
+  return (x_str)
 }
 
 options(digits=3)
@@ -46,22 +47,23 @@ act_file <- "./activity.csv"
 act_zip  <- "./activity.zip"
 act_url  <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip"
 
-if(!file.exists(act_file))
-{ 
-  if(!file.exists(act_zip))
-  { download.file(act_url, act_zip, method='curl')
+if (!file.exists(act_file)) {
+  if (!file.exists(act_zip)) {
+    download.file(act_url, act_zip, method='curl')
   } 
   unzip(act_zip)
 }
 
-stepsData <- read.csv(act_file) %>% as.data.table %>% 
+stepsData <- read.csv(act_file) %>% 
+  as.data.table %>% 
   mutate(date = ymd(date),
-         hour = floor(interval/100),
-       minute = interval %% 100,
-      daytime = hm(paste(hour, minute)))
+    hour    = floor(interval/100),
+    minute  = interval %% 100,
+    daytime = hm(paste(hour, minute))
+  )
 ```
  
-The data table `stepsData` consists of varibles `steps, date, interval, hour, minute, daytime` for about `17600` observations.  As mentioned in the project description, these are the measurements for an anonymous individual, call him Mr. Anon, during two months in 5 minute intervals.  
+The data table `stepsData` consists of varibles `steps, date, interval, hour, minute, daytime` for about `17600` observations.  As mentioned in the description, these are the measurements for an anonymous individual, call him Mr. Anon, during two months in 5 minute intervals.  
 
 The last four variables are closely related;  in particular `interval` and `daytime` differ only in their class representation.  While `daytime` captures the whole meaning of such variable, it presented issues in the computations.  Thus we remove it, and instead create a simple funtion to display it when necessary. 
 
@@ -69,10 +71,10 @@ The last four variables are closely related;  in particular `interval` and `dayt
 ```r
 stepsData %<>% select(-c(hour, minute, daytime))
 
-int2str <- function(int)
-{ hr  <- floor(int/100)
-  mnt <- int %% 100
-  str <- paste(hr, mnt, sep=":")
+int2time <- function(int) { 
+  hour   <- floor(int/100)
+  minute <- int %% 100
+  str    <- paste(hour, minute, sep=":")
   return(str)
 }
 ```
@@ -155,6 +157,7 @@ byDay_mod %>%
 ## Source: local data table [2 x 3]
 ## 
 ##   has_NAs  mean median
+##    (fctr) (dbl)  (dbl)
 ## 1   w_NAs  9354  10395
 ## 2  no_NAs 10766  10766
 ```
@@ -185,12 +188,11 @@ This panel plot is not the most illustrative of plots, because it doesn't show w
 A bonus plot is one that shows more clearly the different steps patterns during the day.
 
 ```r
-ggplot(along_wknd, aes(interval, steps.avg, colour=is.wknd)) +
-  geom_line()
+ggplot(along_wknd, aes(interval, steps.avg, colour=is.wknd)) + geom_line()
 ```
 
 <img src="PA1_Monitoring_files/figure-html/bonus-1.png" title="" alt="" style="display: block; margin: auto;" />
-
+Slightly more clear, you can see the shift of steps taken during that `8:00-9:00` period distributed more uniformly along the whole day.   
 
 
 
