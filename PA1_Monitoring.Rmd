@@ -3,11 +3,11 @@ title: "Reproducibility on Activity Monitoring"
 author: "Diego-MX"
 date: "May 2016"
 output:
+  pdf_document: default
   html_document:
     highlight: zenburn
     keep_md: yes
     theme: flatly
-  pdf_document: default
 ---
 
 This is a class project for **Coursera** and **Johns Hopkins**' course on Reproducible Research.  For a link to the project's description click [here][1].  
